@@ -1,0 +1,49 @@
+{
+  "audit": {
+    "label_breakdown": {
+      "label_2_children": 129,
+      "label_2_parents": 15,
+      "label_0_parents": 243,
+      "label_0_children": 0
+    },
+    "order_flip_rate": {
+      "parents_mean": 0.001,
+      "children_mean": 0.571
+    },
+    "auc": {
+      "original_raw_columns_logreg": {
+        "auc_mean": 0.906,
+        "auc_sd": 0.036
+      },
+      "original_raw_columns_random_forest": {
+        "auc_mean": 0.935,
+        "auc_sd": 0.03
+      },
+      "order_flip_rate_only": {
+        "auc_mean": 0.923,
+        "auc_sd": 0.027
+      },
+      "same_genotypes_order_removed_logreg": {
+        "auc_mean": 0.515,
+        "auc_sd": 0.068
+      },
+      "same_genotypes_order_removed_random_forest": {
+        "auc_mean": 0.42,
+        "auc_sd": 0.052
+      }
+    }
+  },
+  "case_pseudocontrol_model": {
+    "n_cases": 129,
+    "n_pseudocontrols": 129,
+    "n_families": 129,
+    "auc_mean": 0.652,
+    "auc_sd": 0.062,
+    "auc_fold_range_95": [
+      0.538,
+      0.773
+    ],
+    "pooled_oof_auc_repeat1": 0.643,
+    "most_chosen_C": 0.03
+  }
+}
