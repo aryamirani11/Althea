@@ -3,10 +3,8 @@
 Althea analyses a family-based genetic dataset for Crohn's disease. It does three things:
 
 1. **Finds the association signal** using the test the study design calls for: the transmission disequilibrium test (TDT).
-2. **Audits an earlier classifier** that scored 0.94 ROC-AUC, and shows that the score came from how the file was formatted, not from genetics.
+2. **Audits for data leakage.** A naive classifier on the raw data scores 0.94 ROC-AUC. Althea shows that this score comes from how the file is formatted, not from genetics.
 3. **Builds a valid predictive baseline** (case vs pseudo-control, family-grouped cross-validation) that reaches an honest **0.65 AUC**.
-
-The first version of this project reported the 0.94. Working out why it was wrong turned out to be the most useful part of the project.
 
 ![Leakage audit](figures/leakage_audit.png)
 
@@ -42,11 +40,11 @@ In trio data, the right question is not "do patients differ from other people?".
 
 The cluster of hits at loc26–loc39 and loc74–loc79 is consistent with the IBD5 risk haplotype reported for this region. Full results are in [`results/tdt_results.csv`](results/tdt_results.csv).
 
-## 2. Leakage audit: why the original model scored 0.94
+## 2. Leakage audit: why a naive model scores 0.94
 
-The original pipeline treated `crohn = 0` as "healthy control" and trained classifiers on the raw columns. Two problems combined:
+The obvious approach is to treat `crohn = 0` as "healthy control" and train a classifier on the raw columns. That scores very well, for two reasons that have nothing to do with disease:
 
-**The labels encode family role.** Every `0` is a parent. The model was really learning to tell **parents from children**.
+**The labels encode family role.** Every `0` is a parent. A model trained on these labels learns to tell **parents from children**.
 
 **The file stores the two groups' alleles differently.** Children are *phased*: `a1` is the allele from the father and `a2` the allele from the mother. Parents' alleles are stored in a *fixed sorted order*. So the order of the two columns gives away who is a child:
 
@@ -54,8 +52,8 @@ The original pipeline treated `crohn = 0` as "healthy control" and trained class
 
 | Model (repeated 5-fold CV) | ROC-AUC |
 |---|---|
-| Original setup: random forest on raw columns | 0.94 ± 0.03 |
-| Original setup: logistic regression on raw columns | 0.91 ± 0.04 |
+| Naive setup: random forest on raw columns | 0.94 ± 0.03 |
+| Naive setup: logistic regression on raw columns | 0.91 ± 0.04 |
 | **One feature**: share of a person's alleles stored out of sorted order | **0.92 ± 0.03** |
 | Same genotypes, order removed (minor-allele counts), logistic regression | 0.52 ± 0.07 |
 | Same genotypes, order removed, random forest | 0.42 ± 0.05 |
@@ -92,7 +90,7 @@ pytest -q            # 6 tests
 ├── src/
 │   ├── data.py                 # loading, trio structure, order-free encoding, pseudo-controls
 │   ├── tdt.py                  # transmission disequilibrium test
-│   ├── audit.py                # leakage audit of the original setup
+│   ├── audit.py                # leakage audit of a naive setup
 │   ├── model.py                # case vs pseudo-control model, nested grouped CV
 │   └── plots.py                # figures
 ├── tests/test_althea.py        # encoding, TDT, phasing and label checks

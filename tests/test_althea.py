@@ -74,7 +74,7 @@ def test_children_are_phased_father_then_mother():
         assert from_father[called].all()
 
 
-def test_original_labels_are_parent_vs_child():
+def test_naive_labels_are_parent_vs_child():
     df = load_raw()
     founders = is_founder(df)
     assert (df.loc[founders, "crohn"].isin([0, 2])).all()

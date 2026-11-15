@@ -1,7 +1,7 @@
-"""Leakage audit: why the original classifier scored 0.94 ROC-AUC.
+"""Leakage audit: why a naive classifier on this dataset scores 0.94 ROC-AUC.
 
-The first version of this project trained classifiers on the raw columns
-to separate label 2 ("Crohn's") from label 0 ("control"). Three things
+The obvious approach is to train a classifier on the raw columns to
+separate label 2 ("Crohn's") from label 0 ("control"). Three things
 explain its score, and none of them is biology:
 
 1. Label 0 means "status unknown", and every label-0 row is a parent.
@@ -42,7 +42,7 @@ def _logreg():
     return make_pipeline(SimpleImputer(), StandardScaler(), LogisticRegression(max_iter=5000))
 
 
-def original_labels(df: pd.DataFrame) -> np.ndarray:
+def naive_labels(df: pd.DataFrame) -> np.ndarray:
     return (df["crohn"] == AFFECTED).astype(int).to_numpy()
 
 
@@ -67,9 +67,9 @@ def order_flip_rate(df: pd.DataFrame) -> np.ndarray:
 
 
 def run_audit(df: pd.DataFrame) -> tuple[dict, np.ndarray]:
-    y = original_labels(df)
+    y = naive_labels(df)
     founders = is_founder(df)
-    raw = df.drop(columns=ID_COLS + ["crohn"])  # what the original pipeline used
+    raw = df.drop(columns=ID_COLS + ["crohn"])  # what a naive pipeline would use
     a1, a2 = alleles(df)
     order_free = dosage(a1, a2, allele_coding(df))
     flip = order_flip_rate(df)
@@ -87,8 +87,8 @@ def run_audit(df: pd.DataFrame) -> tuple[dict, np.ndarray]:
             "children_mean": round(float(flip[~founders].mean()), 3),
         },
         "auc": {
-            "original_raw_columns_logreg": _auc(_logreg(), raw, y),
-            "original_raw_columns_random_forest": _auc(rf, raw, y),
+            "naive_raw_columns_logreg": _auc(_logreg(), raw, y),
+            "naive_raw_columns_random_forest": _auc(rf, raw, y),
             "order_flip_rate_only": _auc(_logreg(), flip.reshape(-1, 1), y),
             "same_genotypes_order_removed_logreg": _auc(_logreg(), order_free, y),
             "same_genotypes_order_removed_random_forest": _auc(rf, order_free, y),

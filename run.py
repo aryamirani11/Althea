@@ -34,7 +34,7 @@ def main() -> None:
     print(hits[["snp", "minor_transmitted", "major_transmitted", "transmission_or", "p_value"]]
           .to_string(index=False), "\n")
 
-    # 2. Leakage audit of the original setup
+    # 2. Leakage audit of a naive setup
     audit, flip = run_audit(df)
     print("[2] Leakage audit (ROC-AUC, repeated 5-fold CV)")
     for name, m in audit["auc"].items():

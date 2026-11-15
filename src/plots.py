@@ -89,8 +89,8 @@ def tdt_plot(results: pd.DataFrame, threshold: float, out: pathlib.Path) -> None
 def leakage_plot(audit: dict, honest: dict, out: pathlib.Path) -> None:
     auc = audit["auc"]
     rows = [
-        ("Original setup: random forest on raw columns",
-         auc["original_raw_columns_random_forest"], ORANGE),
+        ("Naive setup: random forest on raw columns",
+         auc["naive_raw_columns_random_forest"], ORANGE),
         ("One feature: how the alleles are ordered in the file",
          auc["order_flip_rate_only"], ORANGE),
         ("Same genotypes, storage order removed",
@@ -116,7 +116,7 @@ def leakage_plot(audit: dict, honest: dict, out: pathlib.Path) -> None:
     handles = [plt.Rectangle((0, 0), 1, 1, color=ORANGE), plt.Rectangle((0, 0), 1, 1, color=BLUE)]
     ax.legend(handles, ["Leaky: predicts parent vs child", "Valid"], loc="lower right",
               bbox_to_anchor=(1.0, 1.0), ncol=2)
-    ax.set_title("The original 0.94 AUC came from file formatting", pad=26)
+    ax.set_title("A naive 0.94 AUC comes from file formatting", pad=26)
     _save(fig, out)
 
 

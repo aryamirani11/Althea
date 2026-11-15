@@ -11,11 +11,11 @@
       "children_mean": 0.571
     },
     "auc": {
-      "original_raw_columns_logreg": {
+      "naive_raw_columns_logreg": {
         "auc_mean": 0.906,
         "auc_sd": 0.036
       },
-      "original_raw_columns_random_forest": {
+      "naive_raw_columns_random_forest": {
         "auc_mean": 0.935,
         "auc_sd": 0.03
       },
