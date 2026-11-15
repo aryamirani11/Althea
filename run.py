@@ -1,4 +1,4 @@
-"""Run the full Althea analysis: association test, leakage audit, honest model.
+"""Run the full Althea analysis: association test and predictive model.
 
     python run.py
 
@@ -11,8 +11,7 @@ import json
 import pathlib
 
 from src import plots
-from src.audit import run_audit
-from src.data import case_pseudocontrol, is_founder, load_raw
+from src.data import case_pseudocontrol, load_raw
 from src.model import evaluate
 from src.tdt import bonferroni_threshold, tdt
 
@@ -34,27 +33,17 @@ def main() -> None:
     print(hits[["snp", "minor_transmitted", "major_transmitted", "transmission_or", "p_value"]]
           .to_string(index=False), "\n")
 
-    # 2. Leakage audit of a naive setup
-    audit, flip = run_audit(df)
-    print("[2] Leakage audit (ROC-AUC, repeated 5-fold CV)")
-    for name, m in audit["auc"].items():
-        print(f"    {name:<45} {m['auc_mean']:.3f} ± {m['auc_sd']:.3f}")
-    print()
-
-    # 3. Honest predictive baseline
+    # 2. Predictive model
     X, y, groups = case_pseudocontrol(df)
-    honest = evaluate(X, y, groups)
-    print(f"[3] Case vs pseudo-control, family-grouped CV: "
-          f"AUC {honest['auc_mean']:.3f} ± {honest['auc_sd']:.3f}\n")
+    model = evaluate(X, y, groups)
+    print(f"[2] Case vs pseudo-control, family-grouped CV: "
+          f"AUC {model['auc_mean']:.3f} ± {model['auc_sd']:.3f}\n")
 
-    metrics = {"audit": audit, "case_pseudocontrol_model": {k: v for k, v in honest.items()
-                                                            if not k.startswith("_")}}
+    metrics = {"case_pseudocontrol_model": {k: v for k, v in model.items() if not k.startswith("_")}}
     (RESULTS / "metrics.json").write_text(json.dumps(metrics, indent=2))
 
     plots.tdt_plot(assoc, bonferroni_threshold(), FIGURES / "tdt_association.png")
-    plots.leakage_plot(audit, honest, FIGURES / "leakage_audit.png")
-    plots.flip_plot(flip, is_founder(df), FIGURES / "allele_order.png")
-    plots.roc_plot(honest, FIGURES / "roc_pseudocontrol.png")
+    plots.roc_plot(model, FIGURES / "roc_pseudocontrol.png")
     print(f"Saved results to {RESULTS.name}/ and figures to {FIGURES.name}/")
 
 

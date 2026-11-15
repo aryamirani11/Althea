@@ -10,9 +10,8 @@ Two facts about the file matter for everything downstream:
   so they are *not* healthy controls.
 * The two allele columns per SNP are stored differently for parents and
   children. Children are phased (``a1`` = from father, ``a2`` = from
-  mother); parents are stored in a fixed sorted order. Any model that
-  reads the raw columns can tell parents from children by the order
-  alone. See ``src/audit.py``.
+  mother); parents are stored in a fixed sorted order. Genotypes are
+  therefore always encoded order-free (minor-allele counts) before modelling.
 """
 
 from __future__ import annotations

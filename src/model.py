@@ -1,4 +1,4 @@
-"""An honest predictive baseline: case vs pseudo-control.
+"""Predictive model: case vs pseudo-control.
 
 Every affected child is paired with a pseudo-control built from the alleles
 their parents did not pass on. Cross-validation keeps both members of a

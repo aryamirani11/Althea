@@ -14,7 +14,6 @@ import pandas as pd
 # Palette (validated categorical slots + neutral inks)
 BLUE = "#2a78d6"
 BLUE_LIGHT = "#9ec5f4"
-ORANGE = "#eb6834"
 INK = "#0b0b0b"
 INK_2 = "#52514e"
 GRID = "#e4e3df"
@@ -86,65 +85,12 @@ def tdt_plot(results: pd.DataFrame, threshold: float, out: pathlib.Path) -> None
     _save(fig, out)
 
 
-def leakage_plot(audit: dict, honest: dict, out: pathlib.Path) -> None:
-    auc = audit["auc"]
-    rows = [
-        ("Naive setup: random forest on raw columns",
-         auc["naive_raw_columns_random_forest"], ORANGE),
-        ("One feature: how the alleles are ordered in the file",
-         auc["order_flip_rate_only"], ORANGE),
-        ("Same genotypes, storage order removed",
-         auc["same_genotypes_order_removed_logreg"], BLUE),
-        ("Valid design: case vs pseudo-control, family-grouped CV",
-         {"auc_mean": honest["auc_mean"], "auc_sd": honest["auc_sd"]}, BLUE),
-    ]
-    fig, ax = plt.subplots(figsize=(9, 3.9))
-    ypos = np.arange(len(rows))[::-1]
-    for yy, (label, m, color) in zip(ypos, rows):
-        ax.barh(yy, m["auc_mean"], height=0.56, color=color, edgecolor=SURFACE, linewidth=2)
-        ax.errorbar(m["auc_mean"], yy, xerr=m["auc_sd"], color=INK_2, capsize=3, linewidth=1)
-        ax.text(m["auc_mean"] + m["auc_sd"] + 0.012, yy, f"{m['auc_mean']:.2f}",
-                va="center", fontsize=10, color=INK, fontweight="bold")
-    ax.set_yticks(ypos, [r[0] for r in rows], fontsize=9.5, color=INK)
-    ax.axvline(0.5, color=INK_2, linewidth=1, linestyle=(0, (4, 3)))
-    ax.text(0.5, ypos[0] + 0.48, "chance", ha="center", va="bottom", fontsize=8.5, color=INK_2)
-    ax.set_xlim(0, 1.05)
-    ax.set_xlabel("ROC-AUC (mean ± SD across cross-validation folds)")
-    ax.grid(axis="x", color=GRID, linewidth=0.8)
-    ax.set_axisbelow(True)
-    ax.tick_params(axis="y", length=0)
-    handles = [plt.Rectangle((0, 0), 1, 1, color=ORANGE), plt.Rectangle((0, 0), 1, 1, color=BLUE)]
-    ax.legend(handles, ["Leaky: predicts parent vs child", "Valid"], loc="lower right",
-              bbox_to_anchor=(1.0, 1.0), ncol=2)
-    ax.set_title("A naive 0.94 AUC comes from file formatting", pad=26)
-    _save(fig, out)
-
-
-def flip_plot(flip: np.ndarray, founders: np.ndarray, out: pathlib.Path) -> None:
-    bins = np.linspace(0, 1, 26)
-    fig, ax = plt.subplots(figsize=(9, 3.6))
-    ax.hist(flip[founders], bins=bins, color=BLUE, edgecolor=SURFACE, linewidth=2,
-            label=f"Parents (n={founders.sum()})")
-    ax.hist(flip[~founders], bins=bins, color=ORANGE, edgecolor=SURFACE, linewidth=2,
-            label=f"Children (n={(~founders).sum()})")
-    ax.text(0.045, ax.get_ylim()[1] * 0.9, "Parents: alleles always\nstored in sorted order",
-            fontsize=9, color=INK, va="top")
-    ax.text(0.80, 22, "Children: stored as\nfather's, then mother's", fontsize=9, color=INK)
-    ax.set_xlabel("Share of a person's heterozygous SNPs stored out of sorted order")
-    ax.set_ylabel("People")
-    ax.grid(axis="y", color=GRID, linewidth=0.8)
-    ax.set_axisbelow(True)
-    ax.legend(loc="lower right", bbox_to_anchor=(1.0, 1.0), ncol=2)
-    ax.set_title("One storage detail separates parents from children", pad=26)
-    _save(fig, out)
-
-
-def roc_plot(honest: dict, out: pathlib.Path) -> None:
-    fpr, tpr = honest["_roc"]
+def roc_plot(model: dict, out: pathlib.Path) -> None:
+    fpr, tpr = model["_roc"]
     fig, ax = plt.subplots(figsize=(4.6, 4.4))
     ax.plot([0, 1], [0, 1], color=INK_2, linewidth=1, linestyle=(0, (4, 3)))
     ax.plot(fpr, tpr, color=BLUE, linewidth=2)
-    ax.text(0.55, 0.2, f"AUC {honest['auc_mean']:.2f} ± {honest['auc_sd']:.2f}",
+    ax.text(0.55, 0.2, f"AUC {model['auc_mean']:.2f} ± {model['auc_sd']:.2f}",
             fontsize=10, color=INK, fontweight="bold")
     ax.text(0.62, 0.55, "chance", fontsize=8.5, color=INK_2, rotation=40)
     ax.set_xlabel("False positive rate")
